@@ -9,7 +9,7 @@ if (savedData) {
     nodes = [
         {
             id: 1,
-            text: "这是第一段剧情",
+            text: "这是第1段剧情",
             choices: [
                 { text: "选项1", targetId: 2 },
                 { text: "选项2", targetId: 3 }
@@ -17,7 +17,7 @@ if (savedData) {
         },
         {
             id: 2,
-            text: "这是第二段剧情",
+            text: "这是第2段剧情",
             choices: [
                 { text: "选项A", targetId: null },
                 { text: "选项B", targetId: null }
@@ -25,7 +25,7 @@ if (savedData) {
         },
         {
             id: 3,
-            text: "这是第三段剧情",
+            text: "这是第3段剧情",
             choices: []
         }
     ];
