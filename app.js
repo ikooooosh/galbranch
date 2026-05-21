@@ -266,5 +266,78 @@ function jumpToChoice(index) {
     }
 }
 
+// 保存到文件
+function saveToFile() {
+    // 让用户输入文件名
+    let fileName = prompt("请输入文件名：", "galgame_story");
+    if (fileName === null) {
+        return;  // 用户点了取消
+    }
+    if (fileName.trim() === "") {
+        fileName = "galgame_story";  // 空的话用默认名
+    }
+
+    // 把 nodes 转成 JSON 字符串
+    let jsonStr = JSON.stringify(nodes, null, 2);
+
+    // 创建 Blob 并下载
+    let blob = new Blob([jsonStr], { type: "application/json" });
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = fileName + ".json";  // 自动加 .json 后缀
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast("已保存到文件");
+}
+
+// 从文件加载
+function loadFromFile() {
+    // 创建一个隐藏的文件选择器
+    let input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+
+    input.onchange = function(event) {
+        let file = event.target.files[0];
+        if (!file) return;
+
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                // 解析 JSON
+                let loadedNodes = JSON.parse(e.target.result);
+
+                // 简单验证一下是不是正确的格式
+                if (!Array.isArray(loadedNodes)) {
+                    throw new Error("格式错误");
+                }
+
+                // 替换数据
+                nodes = loadedNodes;
+
+                // 清空右侧编辑区
+                currentEditId = null;
+                let editorDiv = document.getElementById("editor");
+                editorDiv.innerHTML = "<h3>节点编辑</h3><p>请选择一个节点</p>";
+
+                // 刷新列表
+                renderNodeList();
+                showToast("已加载文件");
+            } catch (err) {
+                showToast("文件格式错误，加载失败");
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    input.click();
+}
+
 // 页面加载时渲染
 renderNodeList();
