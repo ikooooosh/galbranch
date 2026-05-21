@@ -1,0 +1,258 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 顶部标题栏 */
+#header {
+    background: #fff;
+    padding: 14px 24px;
+    border-bottom: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+
+#header h1 {
+    font-size: 20px;
+    color: #222;
+    letter-spacing: 1px;
+}
+
+/* 中间主体 */
+#main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* 左侧节点列表 */
+#node-list {
+    width: 280px;
+    background: #fff;
+    border-right: 1px solid #e0e0e0;
+    padding: 16px;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+#node-list h3 {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#node-list > div {
+    background: #fafafa;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #eee;
+}
+
+#node-list > div:hover {
+    background: #f0f0f0;
+}
+
+#node-list > div span {
+    color: #ccc;
+    font-weight: bold;
+    font-size: 16px;
+    margin-left: 8px;
+    transition: color 0.15s;
+}
+
+#node-list > div span:hover {
+    color: #e74c3c;
+}
+
+/* 右侧编辑区 */
+#editor {
+    flex: 1;
+    padding: 24px 32px;
+    overflow-y: auto;
+    background: #fff;
+}
+
+#editor h3 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+#editor p {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
+#editor b {
+    color: #333;
+}
+
+/* 文本框 */
+#editor textarea {
+    background: #fafafa;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 20px;
+    transition: border-color 0.15s;
+}
+
+#editor textarea:focus {
+    outline: none;
+    border-color: #4a90d9;
+    background: #fff;
+}
+
+/* 输入框 */
+#editor input[type="text"] {
+    background: #fafafa;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 13px;
+    width: 200px;
+    transition: border-color 0.15s;
+}
+
+#editor input:focus {
+    outline: none;
+    border-color: #4a90d9;
+    background: #fff;
+}
+
+/* 下拉菜单 */
+#editor select {
+    background: #fafafa;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+#editor select:focus {
+    outline: none;
+    border-color: #4a90d9;
+}
+
+/* 按钮通用 */
+button {
+    background: #fff;
+    color: #555;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+}
+
+button:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+}
+
+/* 编辑区里的按钮 */
+#editor button {
+    margin-top: 12px;
+    margin-right: 8px;
+}
+
+/* 「新增选项」按钮用蓝色突出 */
+#editor button:first-of-type {
+    background: #4a90d9;
+    color: #fff;
+    border-color: #4a90d9;
+}
+
+#editor button:first-of-type:hover {
+    background: #357abd;
+    border-color: #357abd;
+}
+
+/* 跳转按钮用小号字 */
+#editor button:last-of-type {
+    font-size: 12px;
+    padding: 4px 10px;
+}
+
+/* 选项行容器 */
+#editor p:has(select) {
+    background: #fafafa;
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    border: 1px solid #eee;
+}
+
+/* 底部工具栏 */
+#toolbar {
+    background: #fff;
+    border-top: 1px solid #e0e0e0;
+    padding: 12px 24px;
+    flex-shrink: 0;
+    display: flex;
+    gap: 10px;
+}
+
+#toolbar button {
+    background: #4a90d9;
+    color: #fff;
+    border-color: #4a90d9;
+    padding: 10px 20px;
+    font-weight: bold;
+}
+
+#toolbar button:hover {
+    background: #357abd;
+    border-color: #357abd;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f5f5f5;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}
