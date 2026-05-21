@@ -25,6 +25,7 @@ let nodes = [
     }
 ];
 
+// 渲染左侧节点列表
 function renderNodeList() {
     let nodeListDiv = document.getElementById("node-list");
     let html = "<h3>节点列表</h3>";
@@ -37,6 +38,7 @@ function renderNodeList() {
     nodeListDiv.innerHTML = html;
 }
 
+// 显示节点编辑区
 function showNode(id) {
     // 找到节点
     let node = null;
@@ -54,39 +56,44 @@ function showNode(id) {
     let editorDiv = document.getElementById("editor");
     let html = "<h3>节点编辑</h3>";
 
-    // 场景文本
+    // 场景文本 — oninput 自动保存
     html += "<p><b>场景文本：</b></p>";
-    html += '<textarea id="edit-text" rows="3" style="width:100%;">' + node.text + '</textarea>';
-    
-    // 选项列表（可编辑文本 + 下拉选择目标节点）
+    html += '<textarea id="edit-text" rows="3" style="width:100%;" oninput="saveNode()">' + node.text + '</textarea>';
+
+    // 选项列表
     html += "<p><b>选项：</b></p>";
-    for (let i = 0; i < node.choices.length; i++) {
-        let choice = node.choices[i];
-        html += "<p>";
-        html += '选项文本：<input id="choice-text-' + i + '" value="' + choice.text + '">';
-        html += ' → <select id="choice-target-' + i + '">';
-        html += '<option value="">结束</option>';
-        for (let j = 0; j < nodes.length; j++) {
-            let selected = "";
-            if (nodes[j].id === choice.targetId) {
-                selected = "selected";
+    if (node.choices.length === 0) {
+        html += "<p style='color:#999;'>（暂无选项，点击下方按钮新增）</p>";
+    } else {
+        for (let i = 0; i < node.choices.length; i++) {
+            let choice = node.choices[i];
+            html += "<p>";
+            html += '选项文本：<input id="choice-text-' + i + '" value="' + choice.text + '" oninput="saveNode()">';
+            html += ' → <select id="choice-target-' + i + '" onchange="saveNode()">';
+            html += '<option value="">结束</option>';
+            for (let j = 0; j < nodes.length; j++) {
+                let selected = "";
+                if (nodes[j].id === choice.targetId) {
+                    selected = "selected";
+                }
+                html += '<option value="' + nodes[j].id + '" ' + selected + '>' + nodes[j].text + '</option>';
             }
-            html += '<option value="' + nodes[j].id + '" ' + selected + '>' + nodes[j].text + '</option>';
+            html += '</select>';
+            html += ' <span onclick="deleteChoice(' + i + ')" style="cursor:pointer;color:red;">×</span>';
+            html += ' <button onclick="jumpToChoice(' + i + ')" style="font-size:12px;">跳转</button>';
+            html += "</p>";
         }
-        html += '</select>';
-        html += ' <span onclick="deleteChoice(' + i + ')" style="cursor:pointer;color:red;">×</span>';
-        html += "</p>";
     }
 
-    // 新增选项按钮 + 保存按钮
+    // 新增选项按钮
     html += '<button onclick="addChoice()">➕ 新增选项</button>';
-    html += '<button onclick="saveNode()">保存修改</button>';
 
     editorDiv.innerHTML = html;
 }
 
+// 自动保存
 function saveNode() {
-    // 1. 找到当前编辑的节点
+    // 找到当前编辑的节点
     let node = null;
     for (let i = 0; i < nodes.length; i++) {
         if (nodes[i].id === currentEditId) {
@@ -95,10 +102,15 @@ function saveNode() {
         }
     }
 
-    // 2. 保存场景文本
-    node.text = document.getElementById("edit-text").value;
+    if (!node) return;
 
-    // 3. 保存每个选项的文本和目标节点
+    // 保存场景文本
+    let textEl = document.getElementById("edit-text");
+    if (textEl) {
+        node.text = textEl.value;
+    }
+
+    // 保存每个选项的文本和目标节点
     for (let i = 0; i < node.choices.length; i++) {
         let textInput = document.getElementById("choice-text-" + i);
         let targetSelect = document.getElementById("choice-target-" + i);
@@ -111,15 +123,40 @@ function saveNode() {
         }
     }
 
-    // 4. 刷新左侧列表
+    // 刷新左侧列表
     renderNodeList();
 
-    // 5. 提示保存成功
-    alert("已保存！");
+    // 右下角提示（不重复弹）
+    showToast("修改已保存");
 }
 
+// 右下角提示
+let toastTimer = null;
+function showToast(message) {
+    let oldToast = document.getElementById("toast");
+    if (oldToast) {
+        oldToast.remove();
+    }
+    if (toastTimer) {
+        clearTimeout(toastTimer);
+    }
+
+    let toast = document.createElement("div");
+    toast.id = "toast";
+    toast.textContent = message;
+    toast.style.cssText = "position:fixed;bottom:20px;right:20px;background:#4CAF50;color:white;padding:12px 24px;border-radius:6px;font-size:16px;z-index:9999;box-shadow:0 2px 10px rgba(0,0,0,0.2);";
+
+    document.body.appendChild(toast);
+
+    toastTimer = setTimeout(() => {
+        toast.style.transition = "opacity 0.3s";
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 300);
+    }, 1500);
+}
+
+// 新增节点
 function addNode() {
-    // 找到当前最大的 id
     let maxId = 0;
     for (let i = 0; i < nodes.length; i++) {
         if (nodes[i].id > maxId) {
@@ -135,47 +172,11 @@ function addNode() {
     };
     nodes.push(newNode);
     renderNodeList();
+    showToast("已新增节点");
 }
 
-function addChoice() {
-    // 找到当前编辑的节点
-    let node = null;
-    for (let i = 0; i < nodes.length; i++) {
-        if (nodes[i].id === currentEditId) {
-            node = nodes[i];
-            break;
-        }
-    }
-
-    // 新增一个空选项（目标设为 null 表示结束）
-    node.choices.push({
-        text: "新选项",
-        targetId: null
-    });
-
-    // 重新渲染编辑区
-    showNode(currentEditId);
-}
-
-function deleteChoice(index) {
-    // 找到当前编辑的节点
-    let node = null;
-    for (let i = 0; i < nodes.length; i++) {
-        if (nodes[i].id === currentEditId) {
-            node = nodes[i];
-            break;
-        }
-    }
-
-    // 从选项数组中移除指定位置的选项
-    node.choices.splice(index, 1);
-
-    // 重新渲染编辑区
-    showNode(currentEditId);
-}
-
+// 删除节点
 function deleteNode(id) {
-    // 1. 找到要删除的节点在数组中的位置
     let index = -1;
     for (let i = 0; i < nodes.length; i++) {
         if (nodes[i].id === id) {
@@ -183,13 +184,10 @@ function deleteNode(id) {
             break;
         }
     }
-    if (index === -1) {
-        return;  // 没找到，啥也不做
-    }
+    if (index === -1) return;
 
-    // 2. 遍历所有其他节点，把指向被删除节点的选项的 targetId 改成 null
     for (let i = 0; i < nodes.length; i++) {
-        if (i === index) continue;  // 跳过自己
+        if (i === index) continue;
         let node = nodes[i];
         for (let j = 0; j < node.choices.length; j++) {
             if (node.choices[j].targetId === id) {
@@ -198,19 +196,75 @@ function deleteNode(id) {
         }
     }
 
-    // 3. 如果当前编辑的就是这个节点，清空右侧编辑区
     if (currentEditId === id) {
         currentEditId = null;
         let editorDiv = document.getElementById("editor");
-        editorDiv.innerHTML = "<h3>节点编辑</h3><p>请选择一个有选项的节点</p>";
+        editorDiv.innerHTML = "<h3>节点编辑</h3><p>请选择一个节点</p>";
     }
 
-    // 4. 从数组中移除
     nodes.splice(index, 1);
-
-    // 5. 刷新左侧列表
     renderNodeList();
+    showToast("已删除节点");
 }
 
-// 调用一次，显示节点列表
+// 新增选项
+function addChoice() {
+    let node = null;
+    for (let i = 0; i < nodes.length; i++) {
+        if (nodes[i].id === currentEditId) {
+            node = nodes[i];
+            break;
+        }
+    }
+
+    if (!node) return;
+
+    node.choices.push({
+        text: "新选项",
+        targetId: null
+    });
+
+    showNode(currentEditId);
+}
+
+// 删除选项
+function deleteChoice(index) {
+    let node = null;
+    for (let i = 0; i < nodes.length; i++) {
+        if (nodes[i].id === currentEditId) {
+            node = nodes[i];
+            break;
+        }
+    }
+
+    if (!node) return;
+
+    node.choices.splice(index, 1);
+    showNode(currentEditId);
+}
+
+function jumpToChoice(index) {
+    // 找到当前编辑的节点
+    let node = null;
+    for (let i = 0; i < nodes.length; i++) {
+        if (nodes[i].id === currentEditId) {
+            node = nodes[i];
+            break;
+        }
+    }
+
+    if (!node) return;
+
+    // 获取该选项的目标节点 id
+    let targetId = node.choices[index].targetId;
+
+    // 如果有目标节点，跳转过去
+    if (targetId !== null) {
+        showNode(targetId);
+    } else {
+        showToast("该选项指向「结束」，无法跳转");
+    }
+}
+
+// 页面加载时渲染
 renderNodeList();
