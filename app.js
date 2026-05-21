@@ -1,29 +1,40 @@
 let currentEditId = null;
 
-// 场景节点列表
-let nodes = [
-    {
-        id: 1,
-        text: "这是第一段剧情",
-        choices: [
-            { text: "选项1", targetId: 2 },
-            { text: "选项2", targetId: 3 }
-        ]
-    },
-    {
-        id: 2,
-        text: "这是第二段剧情",
-        choices: [
-            { text: "选项A", targetId: null },
-            { text: "选项B", targetId: null }
-        ]
-    },
-    {
-        id: 3,
-        text: "这是第三段剧情",
-        choices: []
-    }
-];
+// 页面加载时：先从 localStorage 读取，没有才用默认数据
+let savedData = localStorage.getItem("galgame_story_data");
+let nodes;
+if (savedData) {
+    nodes = JSON.parse(savedData);
+} else {
+    nodes = [
+        {
+            id: 1,
+            text: "这是第一段剧情",
+            choices: [
+                { text: "选项1", targetId: 2 },
+                { text: "选项2", targetId: 3 }
+            ]
+        },
+        {
+            id: 2,
+            text: "这是第二段剧情",
+            choices: [
+                { text: "选项A", targetId: null },
+                { text: "选项B", targetId: null }
+            ]
+        },
+        {
+            id: 3,
+            text: "这是第三段剧情",
+            choices: []
+        }
+    ];
+}
+
+// 保存到 localStorage（每次数据变动都调用这个）
+function saveToLocalStorage() {
+    localStorage.setItem("galgame_story_data", JSON.stringify(nodes));
+}
 
 // 渲染左侧节点列表
 function renderNodeList() {
@@ -40,7 +51,6 @@ function renderNodeList() {
 
 // 显示节点编辑区
 function showNode(id) {
-    // 找到节点
     let node = null;
     for (let i = 0; i < nodes.length; i++) {
         if (nodes[i].id === id) {
@@ -49,18 +59,14 @@ function showNode(id) {
         }
     }
 
-    // 记录当前编辑的是哪个节点
     currentEditId = id;
 
-    // 生成可编辑界面
     let editorDiv = document.getElementById("editor");
     let html = "<h3>节点编辑</h3>";
 
-    // 场景文本 — oninput 自动保存
     html += "<p><b>场景文本：</b></p>";
     html += '<textarea id="edit-text" rows="3" style="width:100%;" oninput="saveNode()">' + node.text + '</textarea>';
 
-    // 选项列表
     html += "<p><b>选项：</b></p>";
     if (node.choices.length === 0) {
         html += "<p style='color:#999;'>（暂无选项，点击下方按钮新增）</p>";
@@ -85,7 +91,6 @@ function showNode(id) {
         }
     }
 
-    // 新增选项按钮
     html += '<button onclick="addChoice()">➕ 新增选项</button>';
 
     editorDiv.innerHTML = html;
@@ -93,7 +98,6 @@ function showNode(id) {
 
 // 自动保存
 function saveNode() {
-    // 找到当前编辑的节点
     let node = null;
     for (let i = 0; i < nodes.length; i++) {
         if (nodes[i].id === currentEditId) {
@@ -104,13 +108,11 @@ function saveNode() {
 
     if (!node) return;
 
-    // 保存场景文本
     let textEl = document.getElementById("edit-text");
     if (textEl) {
         node.text = textEl.value;
     }
 
-    // 保存每个选项的文本和目标节点
     for (let i = 0; i < node.choices.length; i++) {
         let textInput = document.getElementById("choice-text-" + i);
         let targetSelect = document.getElementById("choice-target-" + i);
@@ -123,10 +125,8 @@ function saveNode() {
         }
     }
 
-    // 刷新左侧列表
     renderNodeList();
-
-    // 右下角提示（不重复弹）
+    saveToLocalStorage();  // ★ 自动保存到本地
     showToast("修改已保存");
 }
 
@@ -172,12 +172,10 @@ function addNode() {
     };
     nodes.push(newNode);
     renderNodeList();
-
-    // ★ 关键：如果当前正在编辑某个节点，重新渲染右侧编辑区
+    saveToLocalStorage();  // ★
     if (currentEditId !== null) {
         showNode(currentEditId);
     }
-
     showToast("已新增节点");
 }
 
@@ -210,6 +208,7 @@ function deleteNode(id) {
 
     nodes.splice(index, 1);
     renderNodeList();
+    saveToLocalStorage();  // ★
     showToast("已删除节点");
 }
 
@@ -249,8 +248,8 @@ function deleteChoice(index) {
     showNode(currentEditId);
 }
 
+// 跳转到选项指向的节点
 function jumpToChoice(index) {
-    // 找到当前编辑的节点
     let node = null;
     for (let i = 0; i < nodes.length; i++) {
         if (nodes[i].id === currentEditId) {
@@ -261,10 +260,8 @@ function jumpToChoice(index) {
 
     if (!node) return;
 
-    // 获取该选项的目标节点 id
     let targetId = node.choices[index].targetId;
 
-    // 如果有目标节点，跳转过去
     if (targetId !== null) {
         showNode(targetId);
     } else {
@@ -272,39 +269,32 @@ function jumpToChoice(index) {
     }
 }
 
-// 保存到文件
+// 导出到文件
 function saveToFile() {
-    // 让用户输入文件名
     let fileName = prompt("请输入文件名：", "galgame_story");
-    if (fileName === null) {
-        return;  // 用户点了取消
-    }
+    if (fileName === null) return;
     if (fileName.trim() === "") {
-        fileName = "galgame_story";  // 空的话用默认名
+        fileName = "galgame_story";
     }
 
-    // 把 nodes 转成 JSON 字符串
     let jsonStr = JSON.stringify(nodes, null, 2);
-
-    // 创建 Blob 并下载
     let blob = new Blob([jsonStr], { type: "application/json" });
     let url = URL.createObjectURL(blob);
 
     let a = document.createElement("a");
     a.href = url;
-    a.download = fileName + ".json";  // 自动加 .json 后缀
+    a.download = fileName + ".json";
     document.body.appendChild(a);
     a.click();
 
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    showToast("已保存到文件");
+    showToast("已导出到文件");
 }
 
 // 从文件加载
 function loadFromFile() {
-    // 创建一个隐藏的文件选择器
     let input = document.createElement("input");
     input.type = "file";
     input.accept = ".json";
@@ -316,23 +306,18 @@ function loadFromFile() {
         let reader = new FileReader();
         reader.onload = function(e) {
             try {
-                // 解析 JSON
                 let loadedNodes = JSON.parse(e.target.result);
-
-                // 简单验证一下是不是正确的格式
                 if (!Array.isArray(loadedNodes)) {
                     throw new Error("格式错误");
                 }
 
-                // 替换数据
                 nodes = loadedNodes;
+                saveToLocalStorage();  // ★ 加载后也存到本地
 
-                // 清空右侧编辑区
                 currentEditId = null;
                 let editorDiv = document.getElementById("editor");
                 editorDiv.innerHTML = "<h3>节点编辑</h3><p>请选择一个节点</p>";
 
-                // 刷新列表
                 renderNodeList();
                 showToast("已加载文件");
             } catch (err) {
