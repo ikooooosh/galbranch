@@ -2,19 +2,18 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>
-        <style>
-            #main{
-                display: flex;
-            }
-            #node-list{
-                width: 300px;
-            }
-            #editor{
-                flex: 1;
-            }
-        </style>
-        Galgame Branch</title>
+    <title>Galgame Branch</title>
+    <style>
+        #main {
+            display: flex;
+        }
+        #node-list {
+            width: 300px;
+        }
+        #editor {
+            flex: 1;
+        }
+    </style>
 </head>
 <body>
     <!-- 顶部标题栏 -->
@@ -39,10 +38,12 @@
 
     <!-- 底部工具栏 -->
     <div id="toolbar">
-        <button>新增节点</button>
+        <button onclick="addNode()">新增节点</button>
         <button>保存</button>
         <button>加载</button>
     </div>
-    <script src = "nodetsc1.js"></script>
+
+    <!-- 引入外部 JS 文件 -->
+    <script src="app.js"></script>
 </body>
 </html>
