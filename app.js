@@ -47,11 +47,6 @@ function showNode(id) {
         }
     }
 
-    // 没有选项就不更新
-    if (node.choices.length === 0) {
-        return;
-    }
-
     // 记录当前编辑的是哪个节点
     currentEditId = id;
 
@@ -62,7 +57,7 @@ function showNode(id) {
     // 场景文本
     html += "<p><b>场景文本：</b></p>";
     html += '<textarea id="edit-text" rows="3" style="width:100%;">' + node.text + '</textarea>';
-
+    
     // 选项列表（可编辑文本 + 下拉选择目标节点）
     html += "<p><b>选项：</b></p>";
     for (let i = 0; i < node.choices.length; i++) {
@@ -79,10 +74,12 @@ function showNode(id) {
             html += '<option value="' + nodes[j].id + '" ' + selected + '>' + nodes[j].text + '</option>';
         }
         html += '</select>';
+        html += ' <span onclick="deleteChoice(' + i + ')" style="cursor:pointer;color:red;">×</span>';
         html += "</p>";
     }
 
-    // 保存按钮
+    // 新增选项按钮 + 保存按钮
+    html += '<button onclick="addChoice()">➕ 新增选项</button>';
     html += '<button onclick="saveNode()">保存修改</button>';
 
     editorDiv.innerHTML = html;
@@ -140,6 +137,43 @@ function addNode() {
     renderNodeList();
 }
 
+function addChoice() {
+    // 找到当前编辑的节点
+    let node = null;
+    for (let i = 0; i < nodes.length; i++) {
+        if (nodes[i].id === currentEditId) {
+            node = nodes[i];
+            break;
+        }
+    }
+
+    // 新增一个空选项（目标设为 null 表示结束）
+    node.choices.push({
+        text: "新选项",
+        targetId: null
+    });
+
+    // 重新渲染编辑区
+    showNode(currentEditId);
+}
+
+function deleteChoice(index) {
+    // 找到当前编辑的节点
+    let node = null;
+    for (let i = 0; i < nodes.length; i++) {
+        if (nodes[i].id === currentEditId) {
+            node = nodes[i];
+            break;
+        }
+    }
+
+    // 从选项数组中移除指定位置的选项
+    node.choices.splice(index, 1);
+
+    // 重新渲染编辑区
+    showNode(currentEditId);
+}
+
 function deleteNode(id) {
     // 1. 找到要删除的节点在数组中的位置
     let index = -1;
@@ -177,5 +211,6 @@ function deleteNode(id) {
     // 5. 刷新左侧列表
     renderNodeList();
 }
+
 // 调用一次，显示节点列表
 renderNodeList();
