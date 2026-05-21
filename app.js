@@ -172,6 +172,12 @@ function addNode() {
     };
     nodes.push(newNode);
     renderNodeList();
+
+    // ★ 关键：如果当前正在编辑某个节点，重新渲染右侧编辑区
+    if (currentEditId !== null) {
+        showNode(currentEditId);
+    }
+
     showToast("已新增节点");
 }
 
